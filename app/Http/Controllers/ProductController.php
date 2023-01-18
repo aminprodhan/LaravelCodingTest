@@ -27,8 +27,19 @@ class ProductController extends Controller
     public function index()
     {
         $products=$this->productRepository->list();
-        $variants=$this->productVariantsRepository->list();
-        //dd($products->toArray()); //perPage,
+        $variants_data=$this->productVariantsRepository->productVariants()->groupBy("variant_id");
+        $variants=[];
+        foreach($variants_data as $key => $val){
+            $vinfo=Variant::find($key);
+            $ara_variants=[
+                "id" => $key,
+                "title" => $vinfo->title,
+                "list" => $val,
+            ];
+
+            array_push($variants,$ara_variants);
+        }
+        //dd($variants); //perPage,
         return view('products.index',compact('products','variants'));
     }
 
@@ -52,11 +63,11 @@ class ProductController extends Controller
     public function store(Request $request)
     {
 
-        //dd($request->file->getClientOriginalExtension());
+        //dd($request->all());
         $pid=$this->productRepository->createOrUpdate($request->all());
-        $files=CommonTrait::uploadMultipleFiles($request->file,'product-images');
         $path=CommonTrait::getImageFileBasePath();
-        if(!empty($pid)){
+        if($request->hasFile('file') && !empty($pid)){
+            $files=CommonTrait::uploadMultipleFiles($request->file,'product-images');
             foreach($files['file'] as $file){
                 if(!empty($file)){
                     ProductImage::updateOrCreate(
@@ -92,7 +103,7 @@ class ProductController extends Controller
         $variants = Variant::all();
         //dd($product->variants());
         //$product=$this->productRepository->find($product)
-        $product=Product::with("getVariantsPrice.getVariantOne","getVariantsPrice.getVariantTwo","getVariantsPrice.getVariantThree")->find($product->id);
+        $product=Product::with("getProductImages","getVariantsPrice.getVariantOne","getVariantsPrice.getVariantTwo","getVariantsPrice.getVariantThree")->find($product->id);
         return view('products.edit', compact('variants','product'));
     }
 

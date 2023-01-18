@@ -4,7 +4,13 @@
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Edit Product</h1>
     </div>
-    <form action="">
+    <form action="{{ route('product.store') }}"
+        id="idForm"
+        enctype="multipart/form-data"
+        method="post"
+        autocomplete="off" spellcheck="false">
+        @csrf
+        <input type="hidden" name="updateId" value="{{$product->id}}" />
         <section>
             <div class="row">
                 <div class="col-md-6">
@@ -52,6 +58,9 @@
                             </div>
                         </div>
                     </div>
+                    @foreach ($product->getProductImages as $val)
+                        <img style="width: 100px;height:100px" src="{{$val->file_path}}" />
+                    @endforeach
                 </div>
                 <!--                Variants-->
                 <div class="col-md-6">
@@ -96,16 +105,27 @@
 @endsection
 
 @push('page_js')
-    <script type="text/javascript" src="{{ asset('js/product.js') }}"></script>
     <script>
         var variants=@json($product->variantTransaction->groupBy("variant_id"));
         var variant_prices=@json($product->getVariantsPrice);
+    </script>
+    <script type="text/javascript" src="{{ asset('js/product.js') }}"></script>
+    <script>
+        Dropzone.autoDiscover = false;
+        var myDropzone = new Dropzone("#idForm", {
+            autoProcessQueue: false,
+            autoDiscover : false,
+            parallelUploads:10,
+            uploadMultiple:true,
+            url: "{{ route('product.store') }}",
+            //maxFilesize: 1,
+            //acceptedFiles: ".jpeg,.jpg,.png,.gif"
+        });
         $(document).ready(function () {
             Object.keys(variants).forEach(function(key){
                 console.log("kkk=",key);
                 addVariantTemplate(key,variants[key]);
             })
-
             setPrices(variant_prices);
 
         });
@@ -113,23 +133,41 @@
             var tableBody='';
             $(variant_prices).each(function (index, row) {
 
-                var variant_title=(row['get_variant_one']['variant'] ?? '') + "/"+ (row['get_variant_two']['variant'] ?? '')+"/"+row['get_variant_three']['variant'] ?? '';
+                var variant_title=(row['get_variant_one'] ? (row['get_variant_one']['variant'] ?? '') : '') + "/"+ (row['get_variant_two'] ? (row['get_variant_two']['variant'] ?? '') : '') + "/"+(row['get_variant_three'] ? (row['get_variant_three']['variant'] ?? '') : '');
                 console.log("row=",variant_title);
                 tableBody += `<tr>
                             <th>
-                                            <input type="hidden" name="product_preview[${index}][variant]" value="333">
-                                            <span class="font-weight-bold">${variant_title}</span>
-                                        </th>
+                                <input class="pv-index-${index}" data-edited='1' type="hidden" name="product_preview[${index}][variant]" value="${row.id}">
+                                <span class="font-weight-bold">${variant_title}</span>
+                            </th>
                             <td>
-                                            <input type="text" class="form-control" value="${row.price}" name="product_preview[${index}][price]" required>
-                                        </td>
+                                <input type="text" class="form-control" value="${row.price}" name="product_preview[${index}][price]" required>
+                            </td>
                             <td>
-                                            <input type="text" class="form-control" value="${row.stock}" name="product_preview[${index}][stock]">
-                                        </td>
+                                <input type="text" class="form-control" value="${row.stock}" name="product_preview[${index}][stock]">
+                            </td>
                         </tr>`;
             });
             $("#variant-previews").empty().append(tableBody);
+
         }
+        $("#idForm").submit(function(e) {
+            e.preventDefault();
+            myDropzone.processQueue();
+            var form = $(this);
+            var actionUrl = form.attr('action');
+            $.ajax({
+                type: "POST",
+                url: actionUrl,
+                data: form.serialize(), // serializes the form's elements.
+                success: function(data)
+                {
+                    alert("Success"); // show response from the php script.
+                    window.location.reload();
+                }
+            });
+
+        });
         //console.log("varitants=",variants);
     </script>
 @endpush

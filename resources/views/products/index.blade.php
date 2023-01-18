@@ -15,8 +15,13 @@
                 </div>
                 <div class="col-md-2">
                     <select name="variant" id="" class="form-control">
-                        @foreach ($variants as $variant)
-                            <option value="{{$variant->id}}">{{$variant->title}}</option>
+                        <option value="0">All</option>
+                        @foreach ($variants as $key => $variant)
+                            <optgroup label="{{$variant['title']}}">
+                                @foreach ($variant['list'] as $key => $v)
+                                    <option value="{{$v['id']}}">{{$v['variant']}}</option>
+                                @endforeach
+                            </optgroup>
                         @endforeach
                     </select>
                 </div>
@@ -67,17 +72,19 @@
                                                 {{$v_product->getVariantTwo->variant ?? ''}},
                                                 {{$v_product->getVariantThree->variant ?? ''}}
                                             </dt>
+                                            @if($v_product->getVariantOne || $v_product->getVariantTwo || $v_product->getVariantThree)
                                             <dd class="col-sm-9">
                                                 <dl class="row mb-0">
                                                     <dt class="col-sm-4 pb-0">Price : {{ number_format($v_product->price,2) }}</dt>
                                                     <dd class="col-sm-8 pb-0">InStock : {{ number_format($v_product->stock,2) }}</dd>
                                                 </dl>
                                             </dd>
+                                            @endif
                                         </dl>
                                     @endforeach
 
                                     <button
-                                        onclick="$('#variant-{{$v_product->id}}').toggleClass('h-auto')"
+                                        onclick="$('#variant-{{$v_product->id ?? ''}}').toggleClass('h-auto')"
                                         class="btn btn-sm btn-link">Show more</button>
                                 </td>
                                 <td>

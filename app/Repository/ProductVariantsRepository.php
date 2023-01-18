@@ -2,6 +2,7 @@
     namespace App\Repository;
     use App\Interfaces\CrudInterface;
     use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Variant;
 
     class ProductVariantsRepository implements CrudInterface{
@@ -11,6 +12,9 @@ use App\Models\Variant;
         }
         public function list(){
             return Variant::get();
+        }
+        public function productVariants(){
+            return ProductVariant::get();
         }
     }
 ?>

@@ -3,7 +3,8 @@ var currentIndex = 0;
 var indexs = [];
 
 $(document).ready(function () {
-    //addVariantTemplate();
+    if(variant_prices == undefined)
+        addVariantTemplate();
     // $("#file-upload").dropzone({
     //     url: "{{ route('file-upload') }}",
     //     method: "post",
@@ -38,20 +39,20 @@ function getCombination(arr, pre) {
 function updateVariantPreview() {
 
     var valueArray = [];
-
     $(".select2-value").each(function () {
         valueArray.push($(this).val());
     });
-
     var variantPreviewArray = getCombination(valueArray);
-
-
     var tableBody = '';
 
     $(variantPreviewArray).each(function (index, element) {
+        // var isExist=$(".pv-index-"+index).val();
+        // console.log('row=',isExist);
+        // if(isExist != undefined)
+        //     return;
         tableBody += `<tr>
                         <th>
-                                        <input type="hidden" name="product_preview[${index}][variant]" value="${element}">
+                                        <input type="hidden" name="product_preview[${index}][variant]">
                                         <span class="font-weight-bold">${element}</span>
                                     </th>
                         <td>
@@ -65,7 +66,7 @@ function updateVariantPreview() {
 
     $("#variant-previews").empty().append(tableBody);
 }
-
+var flag=0;
 function addVariantTemplate(key_value,values,variant_prices) {
 
     $("#variant-sections").append(`<div class="row">
@@ -116,8 +117,7 @@ function addVariantTemplate(key_value,values,variant_prices) {
         })
     }
     //console.log("valueeee=",valu);
-    $(`#select2-value-${currentIndex}`)
-        .select2({
+    $(`#select2-value-${currentIndex}`).select2({
             tags: true,
             multiple: true,
             placeholder: "Type tag name",
@@ -125,17 +125,19 @@ function addVariantTemplate(key_value,values,variant_prices) {
             theme: "bootstrap4",
             data: values_edit,
         })
-        .on('change', function () {
-            if(key_value == undefined){
+        .on('change', function (val) {
+            console.log("change val=",flag);
+            if(key_value == undefined || flag == 0){
                 updateVariantPreview();
             }
+            else
+                flag=0;
 
         });
 
     if(key_value != undefined){
+        flag=1;
         $(`#select2-value-${currentIndex}`).val(values_edit_ids).change();
-
-
     }
 
     indexs.push(currentIndex);

@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\DB;
                     "description" => $data['product_description'],
                 ];
                 $product_id=Product::updateOrCreate(
-                    ["id" => null],
+                    ["id" => $data['updateId'] ?? null],
                     $product
                 )->id;
 
@@ -49,6 +49,9 @@ use Illuminate\Support\Facades\DB;
                             {
                                 $price_variant['price']=$product_preview[$inc_product_preview]['price'];
                                 $price_variant['stock']=$product_preview[$inc_product_preview]['stock'];
+                                if(!empty($data['updateId']))
+                                    $price_variant['id']=$product_preview[$inc_product_preview]['variant'];
+
                                 $this->insertVariantPrice($price_variant);
                                 $inc_product_preview++;
 
@@ -65,6 +68,8 @@ use Illuminate\Support\Facades\DB;
                                     {
                                         $price_variant['price']=$product_preview[$inc_product_preview]['price'];
                                         $price_variant['stock']=$product_preview[$inc_product_preview]['stock'];
+                                        if(!empty($data['updateId']))
+                                            $price_variant['id']=$product_preview[$inc_product_preview]['variant'];
                                         $this->insertVariantPrice($price_variant);
                                         $inc_product_preview++;
                                     }
@@ -81,6 +86,9 @@ use Illuminate\Support\Facades\DB;
                                                 {
                                                     $price_variant['price']=$product_preview[$inc_product_preview]['price'];
                                                     $price_variant['stock']=$product_preview[$inc_product_preview]['stock'];
+                                                    if(!empty($data['updateId']))
+                                                        $price_variant['id']=$product_preview[$inc_product_preview]['variant'];
+
                                                     $this->insertVariantPrice($price_variant);
                                                     $inc_product_preview++;
                                                 }
@@ -103,41 +111,42 @@ use Illuminate\Support\Facades\DB;
         public function insertVariantPrice($data){
             //echo json_encode($data)."<br>";
             //return 1;
-            return ProductVariantPrice::create($data)->id;
+            return ProductVariantPrice::updateOrCreate(["id" => $data["id"] ?? null],$data)->id;
         }
         public function insertVariant($data){
             //return 1;
-            return ProductVariant::create($data)->id;
+            return ProductVariant::updateOrCreate($data,$data)->id;
         }
         public function find($id){
 
         }
         public function list(){
             $request=request();
-            $list=Product::with(["getVariantsPrice" => function($q) use($request){
+            $list=Product::with(["getProductImages","getVariantsPrice" => function($q) use($request){
                 if(!empty($request->price_from))
                     $q->where("price",">=",$request->price_from);
                 if(!empty($request->price_to))
                     $q->where("price","<=",$request->price_to);
 
+                $q->whereHas("getVariantOne")->orWhereHas("getVariantTwo")->orWhereHas("getVariantThree");
                 $q->with([
                         "getVariantOne" => function($qq) use($request){
                             if(!empty($request->variant))
-                                $qq->where("variant_id",$request->variant);
+                                $qq->where("product_variants.id",$request->variant);
                             },
                         "getVariantTwo" => function($qq) use($request){
                             if(!empty($request->variant))
-                                $qq->where("variant_id",$request->variant);
+                                $qq->where("product_variants.id",$request->variant);
                             },
                         "getVariantThree" => function($qq) use($request){
                             if(!empty($request->variant))
-                                $qq->where("variant_id",$request->variant);
+                                $qq->where("product_variants.id",$request->variant);
                             }
                     ]);
                 }])
             ->whereHas("variants",function($q) use($request){
                 if(!empty($request->variant))
-                    $q->where("variant_id",$request->variant);
+                    $q->where("product_variants.id",$request->variant);
             })
             ->where(function($q) use($request){
                 if(!empty($request->title))
