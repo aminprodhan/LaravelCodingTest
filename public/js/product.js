@@ -3,18 +3,18 @@ var currentIndex = 0;
 var indexs = [];
 
 $(document).ready(function () {
-    addVariantTemplate();
-    $("#file-upload").dropzone({
-        url: "{{ route('file-upload') }}",
-        method: "post",
-        addRemoveLinks: true,
-        success: function (file, response) {
-            //
-        },
-        error: function (file, response) {
-            //
-        }
-    });
+    //addVariantTemplate();
+    // $("#file-upload").dropzone({
+    //     url: "{{ route('file-upload') }}",
+    //     method: "post",
+    //     addRemoveLinks: true,
+    //     success: function (file, response) {
+    //         //
+    //     },
+    //     error: function (file, response) {
+    //         //
+    //     }
+    // });
 });
 
 function addVariant(event) {
@@ -66,7 +66,7 @@ function updateVariantPreview() {
     $("#variant-previews").empty().append(tableBody);
 }
 
-function addVariantTemplate() {
+function addVariantTemplate(key_value,values,variant_prices) {
 
     $("#variant-sections").append(`<div class="row">
                                 <div class="col-md-4">
@@ -97,20 +97,46 @@ function addVariantTemplate() {
                                 </div>
                             </div>`);
 
-    $(`#select2-option-${currentIndex}`).select2({placeholder: "Select Option", theme: "bootstrap4"});
+        $(`#select2-option-${currentIndex}`).select2(
+            {
+                placeholder: "Select Option", theme: "bootstrap4",
+            });
 
+        $(`#select2-option-${currentIndex}`).select2("trigger", "select", {
+            data: {
+                id:key_value,
+            }
+        });
+    //console.log("vlaue=",values);
+    var values_edit=[];var values_edit_ids=[];
+    if(key_value != undefined){
+        values.map(row => {
+            values_edit.push({id:row.variant,text:row.variant});
+            values_edit_ids.push(row.variant);
+        })
+    }
+    //console.log("valueeee=",valu);
     $(`#select2-value-${currentIndex}`)
         .select2({
             tags: true,
             multiple: true,
             placeholder: "Type tag name",
             allowClear: true,
-            theme: "bootstrap4"
-
+            theme: "bootstrap4",
+            data: values_edit,
         })
         .on('change', function () {
-            updateVariantPreview();
+            if(key_value == undefined){
+                updateVariantPreview();
+            }
+
         });
+
+    if(key_value != undefined){
+        $(`#select2-value-${currentIndex}`).val(values_edit_ids).change();
+
+
+    }
 
     indexs.push(currentIndex);
 

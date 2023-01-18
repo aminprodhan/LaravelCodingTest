@@ -4,7 +4,8 @@
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Create Product</h1>
     </div>
-    <form action="{{ route('product.store') }}" method="post" autocomplete="off" spellcheck="false">
+    <form action="{{ route('product.store') }}" id="idForm" enctype="multipart/form-data" method="post" autocomplete="off" spellcheck="false">
+        @csrf
         <section>
             <div class="row">
                 <div class="col-md-6">
@@ -45,8 +46,10 @@
                         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between"><h6
                                 class="m-0 font-weight-bold text-primary">Media</h6></div>
                         <div class="card-body border">
-                            <div id="file-upload" class="dropzone dz-clickable">
-                                <div class="dz-default dz-message"><span>Drop files here to upload</span></div>
+                            <div id="file-upload" class="dropzone dz-clickable file-upload">
+                                <div class="dz-default dz-message">
+                                    <span>Drop files here to upload</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -87,7 +90,7 @@
                     </div>
                 </div>
             </div>
-            <button type="button" class="btn btn-lg btn-primary">Save</button>
+            <button type="submit" id="button" class="btn btn-lg btn-primary">Save</button>
             <button type="button" class="btn btn-secondary btn-lg">Cancel</button>
         </section>
     </form>
@@ -95,4 +98,72 @@
 
 @push('page_js')
     <script type="text/javascript" src="{{ asset('js/product.js') }}"></script>
+    <script>
+
+        // Dropzone.autoDiscover = false;
+        // var myDropzone = new Dropzone("#idForm", {
+        //     autoProcessQueue: false,
+        //     autoDiscover : false,
+        //     url: "{{ route('product.store') }}",
+        //     //maxFilesize: 1,
+        //     //acceptedFiles: ".jpeg,.jpg,.png,.gif"
+        // });
+        // $('#uploadFile').click(function(){
+        //    // myDropzone.processQueue();
+        // });
+
+        $("#file-upload").dropzone({
+            autoProcessQueue: false,
+            autoDiscover : false,
+            parallelUploads:10,
+            uploadMultiple:true,
+            url: "{{ route('product.store') }}",
+            init: function () {
+                var myDropzone = this;
+                // Update selector to match your button
+                $("#button").click(function (e) {
+                    e.preventDefault();
+                    myDropzone.processQueue();
+                });
+                this.on('sending', function(file, xhr, formData) {
+                    // Append all form inputs to the formData Dropzone will POST
+                    console.log("append....",file);
+                    var data = $('#idForm').serializeArray();
+                    $.each(data, function(key, el) {
+                        formData.append(el.name, el.value);
+                    });
+                    //formData.append('files_2[]',file);
+                });
+            },
+            //addRemoveLinks: true,
+            success: function (file, response) {
+                //
+                window.location.reload();
+                console.log("successs");
+            },
+            error: function (file, response) {
+                console.log("error");
+            }
+        });
+
+
+
+        // $("#idForm").submit(function(e) {
+        //     e.preventDefault();
+        //     myDropzone.processQueue();
+
+        //     var form = $(this);
+        //     var actionUrl = form.attr('action');
+        //     $.ajax({
+        //         type: "POST",
+        //         url: actionUrl,
+        //         data: form.serialize(), // serializes the form's elements.
+        //         success: function(data)
+        //         {
+        //             alert(data); // show response from the php script.
+        //         }
+        //     });
+
+        // });
+    </script>
 @endpush

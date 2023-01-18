@@ -19,6 +19,7 @@
                                 <input type="text"
                                        name="product_name"
                                        id="product_name"
+                                       value="{{$product->title}}"
                                        required
                                        placeholder="Product Name"
                                        class="form-control">
@@ -27,6 +28,7 @@
                                 <label for="product_sku">Product SKU</label>
                                 <input type="text" name="product_sku"
                                        id="product_sku"
+                                       value="{{$product->sku}}"
                                        required
                                        placeholder="Product Name"
                                        class="form-control"></div>
@@ -36,7 +38,7 @@
                                           id="product_description"
                                           required
                                           rows="4"
-                                          class="form-control"></textarea>
+                                          class="form-control">{{$product->description}}</textarea>
                             </div>
                         </div>
                     </div>
@@ -95,4 +97,39 @@
 
 @push('page_js')
     <script type="text/javascript" src="{{ asset('js/product.js') }}"></script>
+    <script>
+        var variants=@json($product->variantTransaction->groupBy("variant_id"));
+        var variant_prices=@json($product->getVariantsPrice);
+        $(document).ready(function () {
+            Object.keys(variants).forEach(function(key){
+                console.log("kkk=",key);
+                addVariantTemplate(key,variants[key]);
+            })
+
+            setPrices(variant_prices);
+
+        });
+        function setPrices(variant_prices){
+            var tableBody='';
+            $(variant_prices).each(function (index, row) {
+
+                var variant_title=(row['get_variant_one']['variant'] ?? '') + "/"+ (row['get_variant_two']['variant'] ?? '')+"/"+row['get_variant_three']['variant'] ?? '';
+                console.log("row=",variant_title);
+                tableBody += `<tr>
+                            <th>
+                                            <input type="hidden" name="product_preview[${index}][variant]" value="333">
+                                            <span class="font-weight-bold">${variant_title}</span>
+                                        </th>
+                            <td>
+                                            <input type="text" class="form-control" value="${row.price}" name="product_preview[${index}][price]" required>
+                                        </td>
+                            <td>
+                                            <input type="text" class="form-control" value="${row.stock}" name="product_preview[${index}][stock]">
+                                        </td>
+                        </tr>`;
+            });
+            $("#variant-previews").empty().append(tableBody);
+        }
+        //console.log("varitants=",variants);
+    </script>
 @endpush
