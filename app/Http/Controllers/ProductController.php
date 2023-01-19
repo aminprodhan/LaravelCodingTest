@@ -65,6 +65,12 @@ class ProductController extends Controller
     {
 
         //dd($request->all());
+
+        $this->validate($request, [
+            'product_name' => 'required',
+            'product_sku' => 'required|unique:products,sku,' . $request->updateId,
+         ]);
+
         $pid=$this->productRepository->createOrUpdate($request->all());
         $path=CommonTrait::getImageFileBasePath();
         if($request->hasFile('file') && !empty($pid)){
