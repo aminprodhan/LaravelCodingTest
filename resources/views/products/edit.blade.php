@@ -53,14 +53,19 @@
                         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between"><h6
                                 class="m-0 font-weight-bold text-primary">Media</h6></div>
                         <div class="card-body border">
-                            <div id="file-upload" class="dropzone dz-clickable">
+                            <div id="file-upload" class="dropzone dz-clickable file-upload">
                                 <div class="dz-default dz-message"><span>Drop files here to upload</span></div>
                             </div>
                         </div>
                     </div>
-                    @foreach ($product->getProductImages as $val)
-                        <img style="width: 100px;height:100px" src="{{$val->file_path}}" />
-                    @endforeach
+                    <div class="row">
+                        @foreach ($product->getProductImages as $val)
+                            <div class="col-3">
+                                <img style="width: 100px;height:100px" src="{{$val->file_path}}" /><br>
+                                <button onclick="handlePImageDelete(this,{{$val->id}})" type="button" class="btn btn-lg btn-danger">Delete</button>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
                 <!--                Variants-->
                 <div class="col-md-6">
@@ -111,6 +116,8 @@
     </script>
     <script type="text/javascript" src="{{ asset('js/product.js') }}"></script>
     <script>
+
+
         Dropzone.autoDiscover = false;
         var myDropzone = new Dropzone("#idForm", {
             autoProcessQueue: false,
@@ -121,6 +128,7 @@
             //maxFilesize: 1,
             //acceptedFiles: ".jpeg,.jpg,.png,.gif"
         });
+
         $(document).ready(function () {
             Object.keys(variants).forEach(function(key){
                 console.log("kkk=",key);
@@ -168,6 +176,26 @@
             });
 
         });
+        function handlePImageDelete(v,id){
+            $(v).text("Deleting...");
+            $(v).attr("disabled",true);
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                url: "{{ route('product.image.delete') }}",
+                dataType: 'json',
+                data: {id:id}, // serializes the form's elements.
+                success: function(data)
+                {
+                    alert("Success"); // show response from the php script.
+                    window.location.reload();
+                }
+            });
+        }
         //console.log("varitants=",variants);
     </script>
 @endpush

@@ -9,6 +9,7 @@ use App\Repository\ProductRepository;
 use App\Repository\ProductVariantsRepository;
 use Illuminate\Http\Request;
 use App\Traits\CommonTrait;
+use Illuminate\Support\Facades\File;
 class ProductController extends Controller
 {
     /**
@@ -72,7 +73,7 @@ class ProductController extends Controller
                 if(!empty($file)){
                     ProductImage::updateOrCreate(
                         ["id" => null],
-                        ['product_id' => $pid,"file_path" => $path."".$file]
+                        ['product_id' => $pid,"file_path" => $file]
                     );
                 }
             }
@@ -118,7 +119,16 @@ class ProductController extends Controller
     {
         //
     }
-
+    public function handleFileDelete(Request $request){
+        $image=ProductImage::find($request->id);
+        $image_name=$image->getRawOriginal('file_path');
+        $path="product-images/";
+        if (File::exists(public_path($path."".$image_name))) {
+            File::delete(public_path($path."".$image_name));
+        }
+        $image->delete();
+        return response()->json(public_path($path."".$image_name));
+    }
     /**
      * Remove the specified resource from storage.
      *

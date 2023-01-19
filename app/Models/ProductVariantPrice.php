@@ -16,4 +16,7 @@ class ProductVariantPrice extends Model
     public function getVariantThree(){
         return $this->belongsTo(ProductVariant::class,"product_variant_three");
     }
+    public function priceSelf(){
+        return $this->belongsTo(self::class,"id");
+    }
 }

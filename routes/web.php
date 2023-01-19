@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +25,7 @@ Route::get('/home', 'HomeController@index')->name('home');
 Route::post('/dropzone', 'HomeController@index')->name('file-upload');
 
 Route::middleware('auth')->group(function () {
+    Route::post('product/image/delete/{id?}',[ProductController::class,'handleFileDelete'])->name("product.image.delete");
     Route::resource('product-variant', 'VariantController');
     Route::resource('product', 'ProductController');
     Route::resource('blog', 'BlogController');

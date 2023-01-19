@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
     class ProductRepository implements CrudInterface{
         public function createOrUpdate(array $data=[]){
-            $product_variant=$data['product_variant'];
+            $product_variant=$data['product_variant'] ?? [];
             $count_variant=1;
             $product_preview=$data['product_preview'] ?? [];
             try{
@@ -123,34 +123,43 @@ use Illuminate\Support\Facades\DB;
         public function list(){
             $request=request();
             $list=Product::with(["getProductImages","getVariantsPrice" => function($q) use($request){
+
+                $q->where(function($q) use($request){
+                    $q->whereHas("getVariantOne", function ($query) use ($request){
+                        if(!empty($request->variant))
+                            $query->where("product_variants.id",$request->variant);
+                    })
+                    ->orWhereHas("getVariantTwo", function ($query) use ($request){
+                        if(!empty($request->variant))
+                            $query->where("product_variants.id",$request->variant);
+                    })
+                    ->orWhereHas("getVariantThree", function ($query) use ($request){
+                        if(!empty($request->variant))
+                            $query->where("product_variants.id",$request->variant);
+                    });
+                });
                 if(!empty($request->price_from))
                     $q->where("price",">=",$request->price_from);
                 if(!empty($request->price_to))
                     $q->where("price","<=",$request->price_to);
+            }])
 
-                $q->whereHas("getVariantOne")->orWhereHas("getVariantTwo")->orWhereHas("getVariantThree");
-                $q->with([
-                        "getVariantOne" => function($qq) use($request){
-                            if(!empty($request->variant))
-                                $qq->where("product_variants.id",$request->variant);
-                            },
-                        "getVariantTwo" => function($qq) use($request){
-                            if(!empty($request->variant))
-                                $qq->where("product_variants.id",$request->variant);
-                            },
-                        "getVariantThree" => function($qq) use($request){
-                            if(!empty($request->variant))
-                                $qq->where("product_variants.id",$request->variant);
-                            }
-                    ]);
-                }])
-            ->whereHas("variants",function($q) use($request){
-                if(!empty($request->variant))
-                    $q->where("product_variants.id",$request->variant);
-            })
             ->where(function($q) use($request){
                 if(!empty($request->title))
                     $q->where("title",$request->title);
+                if(!empty($request->variant)){
+                    $q->whereHas("variants",function($q) use($request){
+                        $q->where("product_variants.id",$request->variant);
+                    });
+                }
+                if(!empty($request->price_from) || !empty($request->price_to)){
+                    $q->whereHas("getVariantsPrice",function($q) use($request){
+                        if(!empty($request->price_from))
+                            $q->where("price",">=",$request->price_from);
+                        if(!empty($request->price_to))
+                            $q->where("price","<=",$request->price_to);
+                    });
+                }
                 if(!empty($request->date))
                     {
                         $q->whereBetween("created_at",[CommonTrait::convDateToDateTime($request->date),
@@ -159,13 +168,7 @@ use Illuminate\Support\Facades\DB;
                                 CommonTrait::convDateToDateTime($request->date,'23:59:59')]);
                     }
             })
-            ->whereHas("getVariantsPrice",function($q) use($request){
-                if(!empty($request->price_from))
-                    $q->where("price",">=",$request->price_from);
-                if(!empty($request->price_to))
-                    $q->where("price","<=",$request->price_to);
-                //$q->where("price",">",0);
-            })
+
             ->paginate(5)
             ->appends(request()
             ->query());
