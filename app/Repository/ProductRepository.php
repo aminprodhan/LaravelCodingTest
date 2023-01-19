@@ -24,6 +24,10 @@ use Illuminate\Support\Facades\DB;
                     $product
                 )->id;
 
+                if(!empty($data['updateId'])){
+                    ProductVariantPrice::where("product_id",$product_id)->delete();
+                }
+
                 if(count($product_preview) > 0){
                     foreach($product_variant as $key => $val)
                     {
