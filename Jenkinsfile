@@ -103,30 +103,6 @@ pipeline {
             //     }
             // }
         }
-        
-        // stage('SSH to Remote Server') {
-        //     steps {
-        //         script {
-        //             // Define the SSH password
-        //             def PASSWORD = '_J~1cexz{C%7'
-                    
-        //             // Define the SSH command
-        //             def SSH_COMMAND = "sshpass -p '${PASSWORD}' ssh -p1157 purevat@purevat.com"
-                    
-        //             // Define the remote command to execute
-        //             def REMOTE_COMMAND = 'echo "Hello, World!"'
-                    
-        //             // Execute the SSH command and remote command
-        //             def result = sh(script: "${SSH_COMMAND} '${REMOTE_COMMAND}'", returnStatus: true)
-                    
-        //             if (result == 0) {
-        //                 echo "Successfully executed remote command."
-        //             } else {
-        //                 error "Failed to execute remote command."
-        //             }
-        //         }
-        //     }
-        // }
     }
 }
 
